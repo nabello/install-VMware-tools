@@ -1,7 +1,7 @@
 #!/usr/bin/env python2.7
 
 import subprocess
-from os import getuid
+import os
 import sys
 
 
@@ -83,21 +83,24 @@ def main():
     #Mount the VMware Tools CD in Linux
     os.chdir("/mnt")
     execute("mkdir cdrom", "Mount the VMware Tools CD in Linux", "")
+    
     execute("mount /dev/cdrom /mnt/cdrom/", "", "########")
+    if os.path.ismount("/mnt/cdrom/") == False:
+        raise NameError ("The mount failed verify in VM -> Guest -> Install/Upgrade VMware Tools")
+    
     os.chdir("/mnt/cdrom")
-    
-    #Check that the VMware Tools CD is well mounted and that you can access the file required for installation
-    print("Check that the VMware Tools CD is well mounted and that you can access the file required for installation")
-    if os.path.exists("/tmp/VM*.gz"):
-        raise VMwareToolsError("Your VMware Tools CD can not be accessed, verify that you have correctly mounted it.")
-    
     
     #Copy content *.gz to /tmp/
     execute("cp VM*.gz /tmp/", "Copy content *.gz to /tmp/", "########")
+        
+    #Check that the VMware Tools CD is well mounted and that you can access the file required for installation
+    print("Check that the VMware Tools CD is well mounted and that you can access the file required for installation")
+    if os.path.exists("/tmp/VM*.gz"):
+        raise NameError("Your VMware Tools CD can not be accessed, verify that you have correctly mounted it.")
     
     #Go to /tmp and untar file
-    execute("cd /tmp", "Go to /tmp and untar file", "")
-    execute("tar xvzf VM*.gz", "", "########")
+    os.chdir("/tmp")
+    execute("tar xvzf VM*.gz", "Go to /tmp and untar file", "########")
     
     #Go to VMware Tools folder
     print("Go to VMware Tools folder")
@@ -107,6 +110,10 @@ def main():
     print("Install VMware Tools")
     execute("./vmware-install.pl", "Install VMware Tools", "########")
     
+    #Clean /tmp folder of VMwareTools install scripts files
+    os.chdir("/tmp")
+    execute("rm M*.gz", "Clean /tmp folder of VMwareTools install scripts files", "########")
+    
     
     print("Your VMware Tools have been successfully installed ...")
     
@@ -115,6 +122,6 @@ if __name__ == "__main__":
     class NotSudo(Exception):
         pass
 
-    if getuid() != 0:
+    if os.getuid() != 0:
          raise NotSudo("This program must be run as sudo...")
     main()
