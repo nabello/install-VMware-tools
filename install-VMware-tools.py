@@ -4,8 +4,51 @@ import subprocess
 from os import getuid
 import sys
 
+
+def createBnr(msg,position):
+    msgSize = len(msg)
+    width = 60
+    heigth = 3
+    topBottom = ''
+    middle = ''
+
+    if msgSize >= width:
+        width += 30
+
+    halfMsgSize = msgSize / 2
+    halfWidth = width/2
+    indexStartMsg = halfWidth - halfMsgSize
+
+    for i in range(1,(width-msgSize)) :
+
+        if i == 1 or i == (width-msgSize-1):
+            topBottom += '*'
+            middle += '*'
+        elif i == indexStartMsg:
+            for j in range(0,msgSize):
+                topBottom += '*'
+                middle = middle+msg[j]
+        else:
+            topBottom += '*'
+            middle += ' '
+
+    if position == 'top':
+        return '\n\n\n'+topBottom+'\n'+middle+'\n'+topBottom+'\n'
+    elif position == 'bottom':
+        return '\n'+topBottom+'\n'+middle+'\n'+topBottom+'\n\n\n'
+
+    return '\n'+topBottom+'\n'+middle+'\n'+topBottom+'\n'
+
+
+def execute(cmd,msg1,msg2):
+    print(createBnr(msg1,"top"))
+    rsp = subprocess.call(cmd, shell=True)
+    print(createBnr(msg2,"bottom"))
+    return rsp
+
+
 def test_os(os):
-    out = execute("cat /etc/*-release |grep -i "+os, "Retrieving OS info ...", "########")
+    out = execute("cat /etc/*-release |grep -i "+os, "Check that OS is Ubuntu", "########")
 
     if os == "red hat":
         os="rhel"
@@ -15,60 +58,53 @@ def test_os(os):
     else:
         return False
 
+
 def main():
     print("Installing VMware Tools on Ubuntu  ...")
     
     #Check that OS is Ubuntu
-    print("Check that OS is Ubuntu")
     os = test_os('ubuntu')
     if os is False:
         exit(1)
     
     # Update and Upgarde ubuntu repo/packages
-    print("Update and Upgarde ubuntu repo/packages")
-    subprocess.check_call(["apt-get", "update"])
-    subprocess.check_call(["apt-get", "update"])
+    execute("apt-get update", "Update and Upgarde ubuntu repo/packages","")
+    execute("apt-get update", "", "########")
     
     #Install required compiler tools
-    print("#Install required compiler tools")
-    subprocess.check_call(["apt-get", "install", "build-essential"])
+    execute("apt-get -y install build-essential", "Install required compiler tools", "########")
     
     #Install Linux header specific to the version of Ubuntu that you have running
-    print("Install Linux header specific to the version of Ubuntu that you have running")
-    subprocess.check_call(["apt-get", "install", "linux-headers-`uname -r`"])
+    execute("apt-get -y install linux-headers-`uname -r`", "Install Linux header", "########")
     
     #Insert the CD image of VMware Tools into the virtual CD-ROM Drive
     print("Insert the CD image of VMware Tools into the virtual CD-ROM Drive")
     
     #Mount the VMware Tools CD in Linux
-    print("Mount the VMware Tools CD in Linux")
-    subprocess.check_call(["cd", "/mnt"])
-    subprocess.check_call(["mkdir", "cdrom"])
-    subprocess.check_call(["mount", "/dev/cdrom", "/mnt/cdrom/"])
-    subprocess.check_call(["cd", "/mnt/cdrom"])
+    execute("cd /mnt", "Mount the VMware Tools CD in Linux", "")
+    execute("mkdir cdrom", "", "")
+    execute("mount /dev/cdrom /mnt/cdrom/", "", "")
+    execute("cd /mnt/cdrom", "", "########")
     
     #Check that the VMware Tools CD is well mounted and that you can access the file required for installation
     print("Check that the VMware Tools CD is well mounted and that you can access the file required for installation")
-    #if:
-    #    raise VMwareToolsError("Your VMware Tools CD can not be accessed, verify that you have correctly mounted it.")
+    if os.path.exists("/tmp/VM*.gz"):
+        raise VMwareToolsError("Your VMware Tools CD can not be accessed, verify that you have correctly mounted it.")
     
     
     #Copy content *.gz to /tmp/
-    print("Copy content *.gz to /tmp/")
-    subprocess.check_call(["cp", "VM*.gz", "/tmp/"])
+    execute("cp VM*.gz /tmp/", "Copy content *.gz to /tmp/", "########")
     
     #Go to /tmp and untar file
-    print("Go to /tmp and untar file")
-    subprocess.check_call(["cd", "/tmp"])
-    subprocess.check_call(["tar", "xvzf", "VM*.gz"])
+    execute("cd /tmp", "Go to /tmp and untar file", "")
+    execute("tar xvzf VM*.gz", "", "########")
     
     #Go to VMware Tools folder
-    print("Go to VMware Tools folder")
-    subprocess.check_call(["cd", "vmware-tools-distrib/"])
+    execute("cd vmware-tools-distrib/", "Go to VMware Tools folder", "########")
     
     #Install VMware Tools
     print("Install VMware Tools")
-    #subprocess.check_call(["./vmware-install.pl"])
+    execute("./vmware-install.pl", "Install VMware Tools", "########")
     
     
     print("Your VMware Tools have been successfully installed ...")
