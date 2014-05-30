@@ -47,14 +47,14 @@ def execute(cmd,msg1,msg2):
     return rsp
 
 
-def test_os(os):
-    out = execute("cat /etc/*-release |grep -i "+os, "Check that OS is Ubuntu", "########")
+def test_os(os_type):
+    out = execute("cat /etc/*-release |grep -i "+os_type, "Check that OS is Ubuntu", "########")
 
-    if os == "red hat":
-        os="rhel"
+    if os_type == "red hat":
+        os_type = "rhel"
 
     if out == 0:
-        return os
+        return os_type
     else:
         return False
 
@@ -63,8 +63,8 @@ def main():
     print("Installing VMware Tools on Ubuntu  ...")
     
     #Check that OS is Ubuntu
-    os = test_os('ubuntu')
-    if os is False:
+    os_type = test_os('ubuntu')
+    if os_type is False:
         exit(1)
     
     # Update and Upgarde ubuntu repo/packages
@@ -81,10 +81,10 @@ def main():
     print("Insert the CD image of VMware Tools into the virtual CD-ROM Drive")
     
     #Mount the VMware Tools CD in Linux
-    execute("cd /mnt", "Mount the VMware Tools CD in Linux", "")
-    execute("mkdir cdrom", "", "")
-    execute("mount /dev/cdrom /mnt/cdrom/", "", "")
-    execute("cd /mnt/cdrom", "", "########")
+    os.chdir("/mnt")
+    execute("mkdir cdrom", "Mount the VMware Tools CD in Linux", "")
+    execute("mount /dev/cdrom /mnt/cdrom/", "", "########")
+    os.chdir("/mnt/cdrom")
     
     #Check that the VMware Tools CD is well mounted and that you can access the file required for installation
     print("Check that the VMware Tools CD is well mounted and that you can access the file required for installation")
@@ -100,7 +100,8 @@ def main():
     execute("tar xvzf VM*.gz", "", "########")
     
     #Go to VMware Tools folder
-    execute("cd vmware-tools-distrib/", "Go to VMware Tools folder", "########")
+    print("Go to VMware Tools folder")
+    os.chdir("vmware-tools-distrib/")
     
     #Install VMware Tools
     print("Install VMware Tools")
