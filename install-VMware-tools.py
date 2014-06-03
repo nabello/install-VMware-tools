@@ -112,7 +112,7 @@ def main():
     
     #Clean /tmp folder of VMwareTools install scripts files
     os.chdir("/tmp")
-    execute("rm M*.gz", "Clean /tmp folder of VMwareTools install scripts files", "########")
+    execute("rm VM*.gz", "Clean /tmp folder of VMwareTools install scripts files", "########")
     
     
     print("Your VMware Tools have been successfully installed ...")
